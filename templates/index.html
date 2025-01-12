@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twitter Trends Scraper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .results {
+            margin-top: 20px;
+            display: none;
+        }
+        .loading {
+            display: none;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Twitter Trends Scraper</h1>
+    
+    <button onclick="runScraper()">Click here to run the script</button>
+    
+    <div class="loading">Loading...</div>
+    
+    <div class="results">
+        <h2>These are the most happening topics as on <span id="datetime"></span></h2>
+        <ul id="trends"></ul>
+        <p>The IP address used for this query was <span id="ip"></span></p>
+        
+        <h3>JSON extract from MongoDB:</h3>
+        <pre id="json"></pre>
+        
+        <button onclick="runScraper()">Click here to run the query again</button>
+    </div>
+
+    <script>
+        function runScraper() {
+            document.querySelector('.loading').style.display = 'block';
+            document.querySelector('.results').style.display = 'none';
+            
+            fetch('/scrape')
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelector('.loading').style.display = 'none';
+                    document.querySelector('.results').style.display = 'block';
+                    
+                    document.getElementById('datetime').textContent = data.datetime;
+                    document.getElementById('ip').textContent = data.ip_address;
+                    
+                    const trendsList = document.getElementById('trends');
+                    trendsList.innerHTML = '';
+                    for (let i = 1; i <= 5; i++) {
+                        const trend = data[`nameoftrend${i}`];
+                        const li = document.createElement('li');
+                        li.textContent = trend;
+                        trendsList.appendChild(li);
+                    }
+                    
+                    document.getElementById('json').textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while scraping Twitter trends.');
+                    document.querySelector('.loading').style.display = 'none';
+                });
+        }
+    </script>
+</body>
+</html>
